@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "Code for: conditional diffusion model for ocean oxygen from temperature and salinity"
+authors:
+  - family-names: Vogt
+    given-names: Linus
+license: MIT
+# doi: 10.5281/zenodo.XXXXXXX   # fill in after the Zenodo release
