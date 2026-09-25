@@ -21,7 +21,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
-import paths
+import paths as _paths
 
 
 class TracerDataset(Dataset):
@@ -283,7 +283,7 @@ class TracerDataset(Dataset):
         """
         import time as _time
         try:
-            da_area = xr.open_dataset(str(paths.GRIDAREA))
+            da_area = xr.open_dataset(str(_paths.GRIDAREA))
             da_area = da_area.cell_area.fillna(0.).transpose('lat', 'lon')
             w = da_area.values.astype(np.float64)  # (H, W)
 
@@ -405,7 +405,7 @@ class TracerDataset(Dataset):
         """
         import time as _time
 
-        da_area = xr.open_dataset(str(paths.GRIDAREA))
+        da_area = xr.open_dataset(str(_paths.GRIDAREA))
         da_area = da_area.cell_area.fillna(0.).transpose('lat', 'lon')
         w = da_area.values.astype(np.float64)  # (H, W)
 
@@ -784,7 +784,7 @@ class DDPM:
         self.w_integral = w_integral
 
         # grid cell area (for area weighted integral constraint)
-        da_area = xr.open_dataset(str(paths.GRIDAREA))
+        da_area = xr.open_dataset(str(_paths.GRIDAREA))
         da_area = da_area.cell_area.fillna(0.).transpose('lat', 'lon')
         self.area_tensor = torch.tensor(
             da_area.values, dtype=torch.float32).unsqueeze(0).to(self.device)
