@@ -54,12 +54,13 @@ def save_figure(mpl_fig, path, **save_kw):
     return path
 
 
-def save(fig, name, fmt='pdf'):
+def save(fig, name, fmt='pdf', **save_kw):
     """Save to ``paths.MANUSCRIPT_DIR/<name>/<name>.<fmt>`` (+ .png) at 300 dpi,
-    then close the figure. Returns the primary path."""
+    then close the figure. Extra kwargs (e.g. ``bbox_inches='tight'``) go to
+    both files. Returns the primary path."""
     import matplotlib.pyplot as plt
     fig_dir = Path(paths.MANUSCRIPT_DIR) / name
     fig_dir.mkdir(parents=True, exist_ok=True)
-    path = save_figure(fig, fig_dir / f'{name}.{fmt}', dpi=300)
+    path = save_figure(fig, fig_dir / f'{name}.{fmt}', **{'dpi': 300, **save_kw})
     plt.close(fig)
     return path

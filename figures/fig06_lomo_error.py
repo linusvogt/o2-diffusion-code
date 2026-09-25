@@ -26,7 +26,7 @@ from diffusion import inference as util
 from figures import eval_common as ec
 from figures.eval_common import (
     make_config, run_save_dir, run_exists, load_run, get_models,
-    build_per_model_ds, model_timemean, mape, SampleCfg,
+    build_per_model_ds, model_timemean, skill_map, mape, SampleCfg,
     FIG_DIR, DEFAULT_YEAR_WINDOW)
 
 
@@ -157,6 +157,35 @@ def resolve_epoch(save_dir, epoch):
 # ---------------------------------------------------------------------------
 def _read_models():
     return [ln.strip() for ln in MODELS_FILE.read_text().splitlines() if ln.strip()]
+
+
+def compute_insample(cell, ctx):
+    """Model-mean absolute error maps (mol/m^3, %) for a cell's in-sample run."""
+    cfg = cell_config(cell)
+    save_dir = run_save_dir(cfg)
+    ep = resolve_epoch(save_dir, ctx['epoch'])
+    if ep is None:
+        logging.info(f'[skip] {cell_slug(cell)}: no checkpoint at epoch '
+                     f'{ctx["epoch"]} in {save_dir.name}')
+        return None
+    run = load_run(save_dir, ctx['device'], ep, _compile=False)
+    models = get_models(run.config, max_models=ctx['max_models'])
+    if not models:
+        logging.info(f'[skip] {cell_slug(cell)}: no test models with data')
+        return None
+    d = skill_map(run, models, ctx['year_window'], ctx['sample_cfg'],
+                  months=ctx['months'],
+                  years_stride=ctx['years_stride'][cell['resolution']],
+                  years=ctx['years'], per_model=True)
+    if d is None:
+        return None
+    # per-model |error| first, then average over models -- no sign cancellation
+    agg = ec.model_mean_abs(d['gens'], d['truths'])
+    if agg is None:
+        return None
+    agg['model_names'] = d['model_names']   # models that actually contributed
+    agg['epochs'] = [ep]
+    return agg
 
 
 def compute_oos(cell, ctx):
@@ -527,9 +556,12 @@ def plot_cell_triptych(cell, ds, signed_rel_limit=None, rel_limit=None,
 # ===========================================================================
 # entry points
 # ===========================================================================
-def compute(epoch=DEFAULT_EPOCH):
+def compute(epoch=DEFAULT_EPOCH, split='oos'):
     """Sample every held-out model with its own LOMO run and write the cache
-    (5 samples, 100 DDIM steps, years 81-100, stride 1)."""
+    (5 samples, 100 DDIM steps, years 81-100, stride 1).
+
+    ``split='insample'`` writes the in-sample counterpart instead (test years
+    of the in-sample run); Fig. 8's diffusion column reads both caches."""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if device.type == 'cuda':
         torch.backends.cuda.matmul.allow_tf32 = True
@@ -539,10 +571,11 @@ def compute(epoch=DEFAULT_EPOCH):
                year_window=DEFAULT_YEAR_WINDOW, years=None,
                months=list(range(12)), years_stride=DEFAULT_STRIDE,
                max_models=None, epoch=epoch)
-    d = compute_oos(CELL, ctx)
+    cell = dict(CELL, split=split)
+    d = compute_oos(cell, ctx) if split == 'oos' else compute_insample(cell, ctx)
     if d is None:
-        raise SystemExit(f'{cell_slug(CELL)}: no held-out run usable')
-    return save_cache(CELL, d, ctx)
+        raise SystemExit(f'{cell_slug(cell)}: no usable run')
+    return save_cache(cell, d, ctx)
 
 
 def plot():
@@ -568,9 +601,12 @@ if __name__ == '__main__':
     p.add_argument('step', choices=['compute', 'plot'])
     p.add_argument('--epoch', default=str(DEFAULT_EPOCH),
                    help="checkpoint epoch, or 'latest' (default 500)")
+    p.add_argument('--split', choices=['oos', 'insample'], default='oos',
+                   help='compute only: insample writes the cache Fig. 8 also reads')
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     if args.step == 'compute':
-        compute('latest' if args.epoch.lower() == 'latest' else int(args.epoch))
+        compute('latest' if args.epoch.lower() == 'latest' else int(args.epoch),
+                args.split)
     else:
         plot()
