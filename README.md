@@ -10,9 +10,12 @@ checkpoints and evaluation caches are **not** included, so the scripts do not ru
 without regenerating them. All filesystem locations are collected in [`paths.py`](paths.py) as
 placeholders.
 
-The code was extracted from the author's research repository at commit `1758663`. Unused
-functions and cluster-specific tooling were removed, imports were rewired and paths were
-centralised. Function bodies are otherwise unchanged.
+The code was extracted from the author's research repository at commit `1758663` (the
+vendored utilities come from the author's `ocean_utils` library at commit `5a70402`).
+Unused functions, options and branches were removed, as was cluster-specific tooling.
+Imports were rewired, and paths and the final save step were centralised. As a check, each
+figure's `plot` step was run on the original evaluation caches. Figures 2–10 come out
+pixel-identical to the output of the original code.
 
 ## Model in brief
 
@@ -120,9 +123,10 @@ python -m figures.fig06_lomo_error plot
 
 Notes:
 
-- All caches are sampled at epoch 500 with 100 DDIM steps.
-- The Fig. 4 cache was written before caches recorded their epoch, so it carries no epoch
-  attribute. It was also sampled at epoch 500.
+- All diffusion-model caches are sampled at epoch 500 with 100 DDIM steps. The baseline
+  caches for Fig. 8 come from `baselines/evaluate.py`.
+- The Fig. 4 cache was written before caches recorded their epoch. The script's default at
+  the time was epoch 500, but the cache itself does not record it.
 - The `plot` step of Fig. 10 additionally reads the WOA23 and GOBAI-O2 oxygen fields, the RECCAP2
   region mask and the grid-cell area file.
 - The eval plotters also write a diagnostic PNG into their own output folder under
@@ -133,8 +137,9 @@ Notes:
 - CMIP6 model output is available from the Earth System Grid Federation (ESGF).
 - The observational products are described in the manuscript: WOA23, GOBAI-O2, GLODAPv2,
   ECCO, ERA5, MOBO-DIC, Wang et al. (2025) and Roach & Bindoff (2023).
-- All fields were regridded to 1° (`cdo remapbil,r360x180`) and depth-integrated over 0–2000 m
-  before training.
+- All fields were regridded to 1° (`cdo remapbil,r360x180`) before training. Tracer
+  predictors and the O₂ target are either integrated over 0–2000 m or interpolated onto
+  σ₁ density layers. Wind stress and mixed-layer depth are surface fields.
 
 ## Environment
 

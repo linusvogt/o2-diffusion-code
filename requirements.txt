@@ -8,9 +8,13 @@ cftime==1.6.5
 pandas==2.3.3
 scipy==1.16.3
 xmip==0.7.2
+tqdm==4.67.1
 matplotlib==3.10.8
 ultraplot==1.70.0
 cartopy==0.25.0
 # baselines only
 scikit-learn
 quantile-forest
+joblib
+# optional: only if a map is regridded before plotting (vendored contourf_plot)
+# xesmf
