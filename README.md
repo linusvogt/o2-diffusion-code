@@ -137,9 +137,9 @@ Notes:
 - CMIP6 model output is available from the Earth System Grid Federation (ESGF).
 - The observational products are described in the manuscript: WOA23, GOBAI-O2, GLODAPv2,
   ECCO, ERA5, MOBO-DIC, Wang et al. (2025) and Roach & Bindoff (2023).
-- All fields were regridded to 1° (`cdo remapbil,r360x180`) before training. Tracer
-  predictors and the O₂ target are either integrated over 0–2000 m or interpolated onto
-  σ₁ density layers. Wind stress and mixed-layer depth are surface fields.
+- All fields were regridded to 1° (`cdo remapbil,r360x180`) before training. The O₂
+  target is always integrated over 0–2000 m. Tracer predictors are either integrated the
+  same way or interpolated onto σ₁ density layers. Wind stress and mixed-layer depth are surface fields.
 
 ## Environment
 
