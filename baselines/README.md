@@ -35,4 +35,4 @@ None of the training steps pass `--use-cache`. All four baselines therefore read
 ## Which epoch Fig. 8 shows
 `evaluate.py` takes its fleet, epoch (500), ensemble size, sampler and year window from the diffusion `error_maps` caches `T-S_ann_int_{oos,insample}.nc` in `paths.EVAL_DIR/error_maps/cache/`. Fig. 8 reads the default `--epoch pinned` caches, so its U-Net column is the epoch-500 checkpoint, the same epoch as the diffusion model. The epoch chosen in step 2 is used only by `--epoch selected`, which writes a separate `*_selected.nc` cache that the figure does not read.
 
-Only the oos pin cache has a producer in this release (`figures/fig06_lomo_error.py compute`, which writes to that directory). The in-sample `T-S_ann_int_insample.nc` came from the in-sample path of `general/eval/error_maps.py`, which is not included. Without it, `evaluate --split insample` and the in-sample crosscheck in Fig. 8 cannot run.
+Both pin caches are written by `python -m figures.fig06_lomo_error compute --split oos` and `--split insample`.

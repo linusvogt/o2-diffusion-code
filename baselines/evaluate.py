@@ -255,9 +255,8 @@ def read_pins(path=None, split=DEFAULT_SPLIT):
         raise FileNotFoundError(
             f'no diffusion cache at {path} -- the evaluation takes its fleet, '
             f'epoch and sampling from that file, so there is nothing to '
-            f'compare against. It is written by general/eval/error_maps.py '
-            f'(--predictors T-S --resolutions annual --field-types depthint '
-            f'--splits {split}); for oos, see figures/fig06_lomo_error.py')
+            f'compare against. It is written by '
+            f'`python -m figures.fig06_lomo_error compute --split {split}`')
     ds = xr.open_dataset(path)
     a = ds.attrs
     if str(a.get('split')) != split:
